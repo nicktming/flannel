@@ -174,11 +174,14 @@ func newSubnetManager() (subnet.Manager, error) {
 		Password:  opts.etcdPassword,
 	}
 
+
+	log.Info("======>subnetFile:%s\n", opts.subnetFile)
 	// Attempt to renew the lease for the subnet specified in the subnetFile
 	prevSubnet := ReadCIDRFromSubnetFile(opts.subnetFile, "FLANNEL_SUBNET")
 
 	return etcdv2.NewLocalManager(cfg, prevSubnet)
 }
+
 
 func main() {
 
@@ -539,6 +542,7 @@ func LookupExtIface(ifname string, ifregex string) (*backend.ExternalInterface, 
 
 	var extAddr net.IP
 
+	log.Info("opts.publicIP:%s\n", opts.publicIP)
 	if len(opts.publicIP) > 0 {
 		extAddr = net.ParseIP(opts.publicIP)
 		if extAddr == nil {
