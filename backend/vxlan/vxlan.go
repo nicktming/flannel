@@ -127,7 +127,7 @@ func (be *VXLANBackend) RegisterNetwork(ctx context.Context, config *subnet.Conf
 		vtepPort:  cfg.Port,
 		gbp:       cfg.GBP,
 	}
-
+	// 生成flannel.1 设备
 	dev, err := newVXLANDevice(&devAttrs)
 	if err != nil {
 		return nil, err
@@ -138,7 +138,7 @@ func (be *VXLANBackend) RegisterNetwork(ctx context.Context, config *subnet.Conf
 	if err != nil {
 		return nil, err
 	}
-
+	// 分配子网的时候 需要保存出口地址以及flannel.1 mac地址
 	lease, err := be.subnetMgr.AcquireLease(ctx, subnetAttrs)
 	switch err {
 	case nil:
@@ -155,6 +155,7 @@ func (be *VXLANBackend) RegisterNetwork(ctx context.Context, config *subnet.Conf
 		return nil, fmt.Errorf("failed to configure interface %s: %s", dev.link.Attrs().Name, err)
 	}
 
+	log.Infof("subnet:%v", lease.Subnet)
 	return newNetwork(be.subnetMgr, be.extIface, dev, ip.IP4Net{}, lease)
 }
 
