@@ -165,6 +165,7 @@ func newSubnetManager() (subnet.Manager, error) {
 
 	// Attempt to renew the lease for the subnet specified in the subnetFile
 	prevSubnet := ReadSubnetFromSubnetFile(opts.subnetFile)
+	log.Infof("======>prevSubnet:%s\n", prevSubnet)
 
 	return etcdv2.NewLocalManager(cfg, prevSubnet)
 }
@@ -188,12 +189,14 @@ func main() {
 	var err error
 	// Check the default interface only if no interfaces are specified
 	if len(opts.iface) == 0 && len(opts.ifaceRegex) == 0 {
+		// 因为没有指定iface 所以直接从eth0里面找
 		extIface, err = LookupExtIface("", "")
 		if err != nil {
 			log.Error("Failed to find any valid interface to use: ", err)
 			os.Exit(1)
 		}
 	} else {
+		// 按指定iface找
 		// Check explicitly specified interfaces
 		for _, iface := range opts.iface {
 			extIface, err = LookupExtIface(iface, "")
@@ -226,6 +229,8 @@ func main() {
 			os.Exit(1)
 		}
 	}
+	log.Infof("======>IfaceAddr:%v, ExtAddr:%v, Iface.Name:%s, Iface.Index:%d, Iface.MTU:%d", extIface.IfaceAddr, extIface.ExtAddr,
+		extIface.Iface.Name, extIface.Iface.Index, extIface.Iface.MTU)
 
 	sm, err := newSubnetManager()
 	if err != nil {
@@ -558,6 +563,7 @@ func mustRunHealthz() {
 	}
 }
 
+// 从/run/flannel/subnet.env中读子网
 func ReadSubnetFromSubnetFile(path string) ip.IP4Net {
 	var prevSubnet ip.IP4Net
 	if _, err := os.Stat(path); !os.IsNotExist(err) {
